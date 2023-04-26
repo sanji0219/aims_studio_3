@@ -1,3 +1,4 @@
+from pathlib import Path
 from pprint import pprint as pp
 import json
 
@@ -20,10 +21,37 @@ def is_valid_time_string(s):
     return True
 
 
+def read_json_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+    return data
+
+
+def count_tokens(data):
+    total_tokens = 0
+    for item in data:
+        prompt_tokens = len(item["prompt"])
+        completion_tokens = len(item["completion"])
+        total_tokens += prompt_tokens + completion_tokens
+    return total_tokens
+
+# JSONファイルのパスを指定して読み込みます
+
+
+def calculate_score(s):
+    score = 0
+    for c in s:
+        if c.isalnum():  # 英数字の場合
+            score += 1
+        else:  # それ以外の場合
+            score += 3
+    return score
+
+
 messages = []
 forChat = []
-with open("friend.txt") as f,open("data.json", "w") as e:
-# with open("kose.txt") as f,open("data.json", "w") as e:
+# with open("friend.txt") as f, open("data.json", "w") as e:
+with open("kose.txt") as f, open("data.json", "w") as e:
     p = False
     for line in f:
         if p:
@@ -44,8 +72,10 @@ with open("friend.txt") as f,open("data.json", "w") as e:
     for i in messages:
         if i["sender"] != "内藤剛汰":
             if sender:
-                dict["prompt"]=dict["prompt"].replace("[スタンプ]","").replace("[写真]","")
-                dict["completion"]=dict["completion"].replace("[スタンプ]","").replace("[写真]","")
+                dict["prompt"] = dict["prompt"].replace(
+                    "[スタンプ]", "").replace("[写真]", "")
+                dict["completion"] = dict["completion"].replace(
+                    "[スタンプ]", "").replace("[写真]", "")
                 if dict["prompt"] != "" and dict["completion"] != "":
                     l.append(dict)
                 dict = {"prompt": i["text"], "completion": ""}
@@ -58,3 +88,10 @@ with open("friend.txt") as f,open("data.json", "w") as e:
                 dict["completion"] += "\n"+i["text"]
         sender = i["sender"] == "内藤剛汰"
     json.dump(l, e)
+
+file_path = Path("data.json")
+data = read_json_file(file_path)
+
+# トークン数を計算して出力します
+total_tokens = count_tokens(data)
+print("Total tokens:", str(int(total_tokens/1000*0.002*133.92*100)/100)+"円")
