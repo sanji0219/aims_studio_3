@@ -50,22 +50,25 @@ def calculate_score(s):
 
 messages = []
 forChat = []
+names = ["kose", "iida", "abe"]
 # with open("friend.txt") as f, open("data.json", "w") as e:
-with open("kose.txt") as f, open("data.json", "w") as e:
-    p = False
-    for line in f:
-        if p:
-            if line[len(line)-2] == '"':
-                p = False
-            messages[-1]["text"] += line.replace('"', '').replace('\n', "")
-        elif is_valid_time_string(line) and line != "":
-            if line.split("\t")[2][0] == '"':
-                p = True
-            dic = {}
-            dic["sender"] = line.split("\t")[1]
-            dic["text"] = line.split("\t")[2].replace(
-                '"', '').replace('\n', "")
-            messages.append(dic)
+with open("data.json", "w") as e, open(f"{names[0]}.txt") as kose, open(f"{names[1]}.txt") as iida, open(f"{names[2]}.txt") as abe:
+    friends = [kose, iida, abe]
+    for f in friends:
+        p = False
+        for line in f:
+            if p:
+                if line[len(line)-2] == '"':
+                    p = False
+                messages[-1]["text"] += line.replace('"', '').replace('\n', "")
+            elif is_valid_time_string(line) and line != "":
+                if line.split("\t")[2][0] == '"':
+                    p = True
+                dic = {}
+                dic["sender"] = line.split("\t")[1]
+                dic["text"] = line.split("\t")[2].replace(
+                    '"', '').replace('\n', "")
+                messages.append(dic)
     sender = True
     l = []
     dict = {"prompt": "", "completion": ""}
@@ -78,13 +81,14 @@ with open("kose.txt") as f, open("data.json", "w") as e:
                     "[スタンプ]", "").replace("[写真]", "")
                 if dict["prompt"] != "" and dict["completion"] != "":
                     l.append(dict)
-                dict = {"prompt": i["text"], "completion": ""}
-            else:
+                if "☎" not in i["text"]:
+                    dict = {"prompt": i["text"], "completion": ""}
+            elif "☎" not in i["text"]:
                 dict["prompt"] += "\n"+i["text"]
         elif i["sender"] == "内藤剛汰" and dict["prompt"] != "":
-            if dict["completion"] == "":
+            if dict["completion"] == "" and "☎" not in i["text"]:
                 dict["completion"] = i["text"]
-            else:
+            elif "☎" not in i["text"]:
                 dict["completion"] += "\n"+i["text"]
         sender = i["sender"] == "内藤剛汰"
     json.dump(l, e)
